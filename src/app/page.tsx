@@ -1,5 +1,5 @@
 'use client';
-
+import type { Post } from '@/types';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
@@ -11,7 +11,7 @@ import PostCard from '@/components/PostCard'; // 1. 导入我们新的“菜单�
 export default function HomePage() {
   const [user, setUser] = useState<User | null>(null);
   // 2. 创建两块新的“记忆黑板”：一块存帖子列表，一块记录加载状态
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);;
   const [loading, setLoading] = useState(true);
 
   // 3. 这个useEffect负责获取和监听用户状态（和之前一样）
