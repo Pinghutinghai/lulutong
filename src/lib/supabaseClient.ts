@@ -1,8 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-// 在下面引号里，替换成你自己的Supabase项目URL
-const supabaseUrl = 'https://dchbwcjshhgvlcyoajxr.supabase.co'
-// 在下面引号里，替换成你自己的Supabase anon public key
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjaGJ3Y2pzaGhndmxjeW9hanhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk4MzYxNTAsImV4cCI6MjA3NTQxMjE1MH0.jVuugNXjQkbZn56lpM3x5qjfdxcan6o_tyPyezFGbRQ'
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+// 我们的第一个窃听器
+console.log('Supabase Client Initializing with URL:', supabaseUrl);
+// 为了安全，我们不直接打印Key，只确认它是否存在
+console.log('Is Supabase Key Loaded:', !!supabaseAnonKey); 
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
