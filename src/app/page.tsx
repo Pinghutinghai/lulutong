@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import type { User } from '@supabase/supabase-js';
 import type { Post, Profile } from '@/types';
@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import LoginForm from '@/components/LoginForm';
 import CreatePostForm from '@/components/CreatePostForm';
 import PostCard from '@/components/PostCard';
-import UserNav from '@/components/UserNav'; // 导入新导航组件
+import UserNav from '@/components/UserNav';
 
 const CATEGORIES = ['生活求助', '学业探讨', '失物招领'];
 
@@ -21,7 +21,7 @@ export default function HomePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('全部');
 
-  // Этот useEffect отвечает за получение и отслеживание состояния пользователя и его профиля
+  // useEffect for user authentication
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -31,9 +31,7 @@ export default function HomePage() {
         setProfile(data as Profile);
       }
     };
-    
     fetchUserAndProfile();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -43,41 +41,32 @@ export default function HomePage() {
         setProfile(null);
       }
     });
-
     return () => subscription?.unsubscribe();
   }, []);
 
-  // Этот useEffect отвечает за загрузку постов
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      
-      let query = supabase.from('posts_with_profiles').select('*');
+  // The main function to fetch posts
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
+    let query = supabase.from('posts_with_profiles').select('*');
+    if (searchTerm) { query = query.ilike('content', `%${searchTerm}%`); }
+    if (selectedCategory !== '全部') { query = query.eq('category', selectedCategory); }
+    const { data, error } = await query.order('created_at', { ascending: false });
 
-      if (searchTerm) {
-        query = query.ilike('content', `%${searchTerm}%`);
-      }
-      
-      if (selectedCategory !== '全部') {
-        query = query.eq('category', selectedCategory);
-      }
-      
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('获取帖子失败:', error);
-        toast.error('加载帖子失败，请稍后重试。');
-        setPosts([]);
-      } else {
-        setPosts((data as Post[]) || []); 
-      }
-      setLoading(false);
-    };
-
-    fetchPosts();
+    if (error) {
+      toast.error('加载帖子失败，请稍后重试。');
+      setPosts([]);
+    } else {
+      setPosts((data as Post[]) || []);
+    }
+    setLoading(false);
   }, [searchTerm, selectedCategory]);
 
-  // Функция удаления постов
+  // useEffect for fetching posts based on dependencies
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
+
+  // 👇 The handleDeletePost function is now correctly placed INSIDE the component
   const handleDeletePost = async (postId: number) => {
     if (!window.confirm('确定要删除这篇帖子吗？它下面的所有回复也将被一并删除。')) {
       return;
@@ -96,11 +85,10 @@ export default function HomePage() {
       <div className="w-full max-w-md p-4 pt-16">
         <h1 className="mb-8 text-center text-3xl font-bold">欢迎来到鹿鹿通</h1>
         
-        {/* 条件渲染：登录了就显示用户导航和发帖框，否则显示登录框 */}
         {user ? (
           <>
             <UserNav profile={profile} />
-            <CreatePostForm user={user} />
+            <CreatePostForm user={user} onPostCreated={fetchPosts} />
           </>
         ) : (
           <LoginForm />
