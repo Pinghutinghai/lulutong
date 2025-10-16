@@ -8,6 +8,14 @@ import toast from 'react-hot-toast';
 import type { Profile, Reply, Post } from '@/types';
 import PostCard from '@/components/PostCard';
 
+// 修复：将 PageWrapper 组件定义移到 AccountPage 组件的外部
+// 这确保了它不会在每次 AccountPage 重新渲染时被重新创建
+// 从而解决了输入框失焦的问题
+const PageWrapper = ({ children }: { children: React.ReactNode }) => (
+  <div className="bg-gray-900 text-white min-h-screen p-4">{children}</div>
+);
+
+
 export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,17 +56,16 @@ export default function AccountPage() {
     e.preventDefault();
     if (!user) return;
     const { error } = await supabase.from('profiles').update({ nickname: nickname }).eq('id', user.id);
-    if (error) { toast.error('更新失败：' + error.message); } 
+    if (error) { toast.error('更新失败：' + error.message); }
     else { toast.success('昵称更新成功！'); }
   };
-  
+
   const handleToggleVisibility = async (replyId: number, currentVisibility: boolean) => {
     const { error } = await supabase.from('replies').update({ is_public: !currentVisibility }).eq('id', replyId);
-    if (error) { toast.error('更新状态失败: ' + error.message); } 
+    if (error) { toast.error('更新状态失败: ' + error.message); }
     else { setReplies(replies.map(r => r.id === replyId ? { ...r, is_public: !currentVisibility } : r)); }
   };
 
-  const PageWrapper = ({ children }: { children: React.ReactNode }) => ( <div className="bg-gray-900 text-white min-h-screen p-4">{children}</div> );
   if (loading) { return <PageWrapper><div className="max-w-md mx-auto"><p>加载中...</p></div></PageWrapper>; }
   if (!user) { return <PageWrapper><p>请先 <Link href="/" className="text-indigo-400 hover:underline">登录</Link>。</p></PageWrapper>; }
 
