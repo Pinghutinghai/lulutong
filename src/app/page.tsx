@@ -44,12 +44,16 @@ export default function HomePage() {
     return () => subscription?.unsubscribe();
   }, []);
 
-  // The main function to fetch posts
+  // The main function to fetch posts, now wrapped in useCallback
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     let query = supabase.from('posts_with_profiles').select('*');
-    if (searchTerm) { query = query.ilike('content', `%${searchTerm}%`); }
-    if (selectedCategory !== '全部') { query = query.eq('category', selectedCategory); }
+    if (searchTerm) {
+      query = query.ilike('content', `%${searchTerm}%`);
+    }
+    if (selectedCategory !== '全部') {
+      query = query.eq('category', selectedCategory);
+    }
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
@@ -59,14 +63,13 @@ export default function HomePage() {
       setPosts((data as Post[]) || []);
     }
     setLoading(false);
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory]); // Dependencies are now explicit
 
-  // useEffect for fetching posts based on dependencies
+  // useEffect for fetching posts now correctly depends on fetchPosts
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
 
-  // 👇 The handleDeletePost function is now correctly placed INSIDE the component
   const handleDeletePost = async (postId: number) => {
     if (!window.confirm('确定要删除这篇帖子吗？它下面的所有回复也将被一并删除。')) {
       return;
