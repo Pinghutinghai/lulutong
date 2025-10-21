@@ -15,7 +15,19 @@ export default function PostCard({ post, user, onDelete }: { post: Post; user: U
 
   return (
     <article className="w-full rounded-lg bg-gray-800 p-4 shadow-md group relative">
-      {/* ... 删除按钮 (不变) ... */}
+      {/* --- 删除按钮代码开始 --- */}
+      {user && user.id === post.user_id && (
+        <button
+          onClick={() => onDelete(post.id)}
+          className="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full bg-gray-700 hover:bg-gray-600 z-10" // 添加 z-index 确保按钮在顶层
+          title="删除此帖"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        </button>
+      )}
+      {/* --- 删除按钮代码结束 --- */}
 
       {/* 帖子内容区 */}
       <div className="pb-3">
@@ -37,23 +49,17 @@ export default function PostCard({ post, user, onDelete }: { post: Post; user: U
         </div>
       </div>
 
-      {/* 2. 这是全新的回复区 */}
+      {/* 回复区 */}
       <div className="border-t border-gray-700 mt-4 pt-4">
-        {/* 回复框现在放在这里，只受登录状态影响 */}
         {user && <CreateReplyForm user={user} postId={post.id} />}
-
-        {/* 折叠/展开按钮 */}
         <div className="mt-4">
           {post.reply_count > 0 ? (
             <button onClick={() => setRepliesOpen(!repliesOpen)} className="text-sm text-indigo-400 hover:underline">
               {repliesOpen ? '折叠回复 ▲' : `${post.reply_count} 条回复 ▼`}
             </button>
           ) : (
-            // 当没有回复时，如果用户没登录，可以给个提示
             !user && <p className="text-sm text-gray-500">登录后可参与回复</p>
           )}
-
-          {/* 折叠的回复列表 */}
           {repliesOpen && <ReplyList postId={post.id} user={user} />}
         </div>
       </div>
