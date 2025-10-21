@@ -25,7 +25,7 @@ export default function BookmarkButton({ postId, user }: BookmarkButtonProps) {
         .select('*')
         .eq('post_id', postId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (data) {
         setIsBookmarked(true);

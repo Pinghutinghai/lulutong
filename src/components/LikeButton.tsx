@@ -26,7 +26,7 @@ export default function LikeButton({ postId, user, initialLikeCount }: LikeButto
         .select('*')
         .eq('post_id', postId)
         .eq('user_id', user.id)
-        .single(); // We only expect one or zero rows
+        .maybeSingle(); // We only expect one or zero rows
 
       if (data) {
         setIsLiked(true);
